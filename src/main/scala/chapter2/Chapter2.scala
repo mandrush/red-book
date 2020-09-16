@@ -1,3 +1,5 @@
+package chapter2
+
 import scala.annotation.tailrec
 
 object Chapter2 extends App {
@@ -17,7 +19,4 @@ object Chapter2 extends App {
   println(isSorted(Array(0,0,0), (x: Int, y: Int) => x < y))
   println(isSorted(Array(0,0,0), (x: Int, y: Int) => x >= y))
 
-  def curry[A, B, C](f: (A, B) => C): A => B => C = (a: A) => (b: B) => f(a)
-  def uncurry[A, B, C](f: A => B => C): (A, B) => C = (a: A, b: B) => f(a)(b)
-  def compose[A, B, C](f: B => C, g: A => B): A => C = (a: A) => f(g(a))
 }
