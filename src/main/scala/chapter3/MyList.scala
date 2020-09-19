@@ -67,8 +67,14 @@ object MyList {
     go(xs, 0)
   }
 
-
-
+  def foldLeft[A, B](xs: MyList[A], z: B)(f: (B, A) => B): B = {
+    @scala.annotation.tailrec
+    def go(l: MyList[A], acc: B): B = l match {
+      case Nil        => acc
+      case Cons(h, t) => go(t, f(acc, h))
+    }
+    go(xs, z)
+  }
 
 }
 
@@ -93,6 +99,9 @@ object Test extends App {
   println(length(test))
   println(length(MyList(1)))
   println(length(Nil))
+
+  println(foldLeft(test, 0)(_ + _))
+  println(foldLeft(test, 1.0)(_ * _))
 
 
 
