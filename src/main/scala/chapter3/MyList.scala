@@ -76,6 +76,29 @@ object MyList {
     go(xs, z)
   }
 
+  def sumFoldLeft(xs: MyList[Int]): Int = foldLeft(xs, 0)(_ + _)
+  def productFoldLeft(xs: MyList[Double]): Double = foldLeft(xs, 1.0)(_ * _)
+  def lengthFoldLeft[A](xs: MyList[A]): Int = foldLeft(xs, 0){ case (acc, _) => acc + 1 }
+
+  def reverse[A](xs: MyList[A]): MyList[A] = foldLeft(xs, Nil: MyList[A]){ case (acc, h) => Cons(h, acc) }
+
+  def append[A](xs: MyList[A], aps: MyList[A]): MyList[A] = foldRight(xs, aps)(Cons(_, _))
+
+  def concat[A](xss: MyList[MyList[A]]): MyList[A] = foldRight(xss, Nil: MyList[A])(append)
+
+  def add1ToEach(xs: MyList[Int]): MyList[Int] = foldRight(xs, Nil: MyList[Int]){ case (elem, acc) => Cons(elem + 1, acc) }
+  def eachDoubleToString(xs: MyList[Double]): MyList[String] = foldRight(xs, Nil: MyList[String]){ case (elem, acc) => Cons(elem.toString, acc) }
+
+  def map[A, B](as: MyList[A])(f: A => B): MyList[B] =
+    foldRight(as, Nil: MyList[B])((h, t) => Cons(f(h), t))
+  def filter[A](as: MyList[A])(f: A => Boolean): MyList[A] =
+    foldRight(as, Nil: MyList[A])((h, t) => if (f(h)) Cons(h, t) else t)
+  def flatMap[A, B](as: MyList[A])(f: A => MyList[B]): MyList[B] =
+    foldRight(as, Nil: MyList[B])((h, acc) => append(f(h), acc))
+
+  def filterUsingFlatMap[A](xs: MyList[A])(f: A => Boolean): MyList[A] =
+    flatMap(xs)(h => if (f(h)) MyList(h) else Nil)
+
 }
 
 object Test extends App {
@@ -102,6 +125,31 @@ object Test extends App {
 
   println(foldLeft(test, 0)(_ + _))
   println(foldLeft(test, 1.0)(_ * _))
+  println(s"Length using foldLeft: ${lengthFoldLeft(test)}")
+
+  println(s"Reverse using fold left: ${reverse(test)}")
+
+  println(s"Append using foldRight: ${append(test, MyList(8))}")
+
+  println(s"Concat ${concat(MyList(MyList(1,2,3), MyList(4, 5, 6)))}")
+
+  println(s"Add 1 to each: ${add1ToEach(test)}")
+  println(s"Each double to string: ${eachDoubleToString(MyList(1.0d, 2.0d, 3.0d))}")
+
+  println(s"3.15 using map [add 1 to each] : ${map(test)(_ + 1)}")
+  println(s"3.16 using map [double to string] : ${map(MyList(1.0d, 2.0d, 3.0d))(_.toString)}")
+
+  println(s"Filter out odd numbers from test list: ${filter(test)(_ % 2 != 0)}")
+
+  println(s"flatMap(List(1,2,3))(i => List(i,i)) should result in List(1,1,2,2,3,3): ${flatMap(test)(i => MyList(i, i))}")
+
+  println(s"Filter out odds using filter implemented with flatMap: ${filterUsingFlatMap(test)(_ % 2 != 0)}")
+
+
+
+
+
+
 
 
 
