@@ -17,8 +17,8 @@ object MyTree {
   }
 
   def depth[A](tree: MyTree[A]): Int = tree match {
-    case Branch(l, r) => if(size(l) > size(r)) 1 + depth(l) else 1 + depth(r)
-    case Leaf(_) => 1
+    case Leaf(_) => 0
+    case Branch(l, r) => 1 + (depth(l) max depth(r))
   }
 
   def map[A, B](tree: MyTree[A])(f: A => B): MyTree[B] = tree match {
@@ -26,9 +26,16 @@ object MyTree {
     case Leaf(value) => Leaf(f(value))
   }
 
+  def fold[A,B](t: MyTree[A])(f: A => B)(g: (B,B) => B): B = t match {
+    case Leaf(v) => f(v)
+    case Branch(l, r) => g(fold(l)(f)(g), fold(r)(f)(g))
+  }
 
+  def sizeViaFold[A](t: MyTree[A]): Int = fold(t)(_ => 1)(_ + _ + 1)
+  def depthViaFold[A](t: MyTree[A]): Int = fold(t)(_ => 0)((l, r) => 1 + (l max r))
+  def maximumViaFold(t: MyTree[Int]): Int = fold(t)(identity)(_ max _)
 
-
+  def mapViaFold[A, B](t: MyTree[A])(f: A => B): MyTree[B] = fold(t)(a => Leaf(f(a)): MyTree[B])(Branch(_, _))
 
 }
 
@@ -36,45 +43,23 @@ object TestTree extends App {
   import MyTree._
   println(s"Size of tree: ${size(Branch(Leaf(1), Leaf(2)))}")
 
-  println(s"Maximum of tree: ${maximum(
+  val testTree = Branch(
     Branch(
-      Branch(
-        Branch(Leaf(2), Leaf(23)),
-        Leaf(4)
-      ),
-      Leaf(2)
-    )
+      Branch(Leaf(2), Leaf(23)),
+      Leaf(4)
+    ),
+    Leaf(2)
   )
-  }")
 
+  println(s"Maximum of tree: ${maximum(testTree)}")
 
-  println(s"depth of tree: ${depth(
-    Branch(
-      Branch(
-        Branch(Leaf(2), Leaf(23)),
-        Leaf(4)
-      ),
-      Leaf(2)
-    )
-  )
-  }")
+  println(s"depth of tree: ${depth(testTree)}")
 
-  println(s"map of tree: add 1 to each ${map(
-    Branch(
-      Branch(
-        Branch(Leaf(2), Leaf(23)),
-        Leaf(4)
-      ),
-      Leaf(2)
-    )
-  )(_ + 1)
-  }")
+  println(s"map of tree: add 1 to each ${map(testTree)(_ + 1)}")
 
-
-
-
-
-
+  println(s"Size of tree using fold : ${fold(Branch(Leaf(1), Leaf(2)))(_ => 1)(_ + _ + 1)}")
+  println(s"Depth of tree using fold : ${fold(testTree)(_ => 0)((l, r) => 1 + (l max r))}")
+  println(s"Maximum of tree using fold : ${fold(testTree)(identity)(_ max _)}")
 
 }
 
