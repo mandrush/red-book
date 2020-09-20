@@ -99,6 +99,22 @@ object MyList {
   def filterUsingFlatMap[A](xs: MyList[A])(f: A => Boolean): MyList[A] =
     flatMap(xs)(h => if (f(h)) MyList(h) else Nil)
 
+  def sumLists(first: MyList[Int], second: MyList[Int]): MyList[Int] = first match {
+    case Cons(f, ft) => second match {
+      case Nil => Nil
+      case Cons(s, Nil) => Cons(f + s, Nil)
+      case Cons(s, st) => Cons(f + s, sumLists(ft, st))
+    }
+  }
+
+  def zipWith[A, B, C](as: MyList[A], bs: MyList[B])(f: (A, B) => C): MyList[C] = as match {
+    case Cons(a, at) => bs match {
+      case Nil => Nil
+      case Cons(b, Nil) => Cons(f(a, b), Nil)
+      case Cons(b, bt) => Cons(f(a, b), zipWith(at, bt)(f))
+    }
+  }
+
 }
 
 object Test extends App {
@@ -144,6 +160,8 @@ object Test extends App {
   println(s"flatMap(List(1,2,3))(i => List(i,i)) should result in List(1,1,2,2,3,3): ${flatMap(test)(i => MyList(i, i))}")
 
   println(s"Filter out odds using filter implemented with flatMap: ${filterUsingFlatMap(test)(_ % 2 != 0)}")
+
+  println(s"Sum ints in two lists: ${sumLists(MyList(1,2,3,12), MyList(4,5,6,123))}")
 
 
 
