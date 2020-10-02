@@ -60,4 +60,12 @@ object OptionChapter extends App {
   def sequence[A](xs: List[Option[A]]): Option[List[A]] =
     xs.foldRight(None: Option[List[A]])((curr, z) => map2(curr, z)((opt, list) => opt :: list))
 
+  def traverse[A, B](xs: List[A])(f: A => Option[B]): Option[List[B]] = xs match {
+    case Nil    => None
+    case h :: t => map2(f(h), traverse(t)(f))(_ :: _)
+  }
+
+  def sequenceUsingTraverse[A](xs: List[Option[A]]): Option[List[A]] =
+    traverse(xs)(a => a)
+
 }
