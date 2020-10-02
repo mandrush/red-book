@@ -57,4 +57,7 @@ object OptionChapter extends App {
     } yield f(oa, ob)
   }
 
+  def sequence[A](xs: List[Option[A]]): Option[List[A]] =
+    xs.foldRight(None: Option[List[A]])((curr, z) => map2(curr, z)((opt, list) => opt :: list))
+
 }
