@@ -1,6 +1,8 @@
 package chapter4
 
-import scala.{Option => _, Either => _}
+import com.sun.corba.se.spi.activation.EndPointInfoHelper
+
+import scala.{Either => _, Option => _}
 
 sealed trait Option[+A] {
 
@@ -38,12 +40,40 @@ sealed trait Option[+A] {
   }
 
 }
-
 case class Some[+A](get: A) extends Option[A]
-
 case object None extends Option[Nothing]
 
-object OptionChapter extends App {
+
+sealed trait Either[+E, +A] {
+
+  def map[B](f: A => B): Either[E, B] = this match {
+    case Right(v) => Right(f(v))
+    case Left(v)  => Left(v)
+  }
+
+  def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = this match {
+    case Right(v) => f(v)
+    case Left(v) => Left(v)
+  }
+
+  def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = this match {
+    case Left(_) => b
+    case _ => this
+  }
+
+  def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = {
+    for {
+      aa <- this
+      bb <- b
+    } yield f(aa, bb)
+  }
+
+
+}
+case class Left[+E](value: E) extends Either[E, Nothing]
+case class Right[+A](value: A) extends Either[Nothing, A]
+
+object Chapter4 extends App {
   def lift[A, B](f: A => B): Option[A] => Option[B] = x => x.map(f)
 
   def Try[A](a: => A): Option[A] = try Some(a) catch {
