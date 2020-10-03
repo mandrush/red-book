@@ -104,4 +104,26 @@ object Chapter4 extends App {
     traverseEither(es)(_ => _)
   }
 
+  //accumulate errors?? kinda
+  sealed trait AccumulativeEither[+E, +A] {
+    def map[B](f: A => B): AccumulativeEither[E, B] = this match {
+      case AccRight(value) => AccRight(f(value))
+      case AccLeft(errors) => AccLeft(errors)
+    }
+
+    def flatMap[EE >: E, B](f: A => AccumulativeEither[EE, B]): AccumulativeEither[EE, B] = this match {
+      case AccRight(v) => f(v)
+      case AccLeft(errs) => AccLeft(errs)
+    }
+
+    def map2[EE >: E, B, C](b: AccumulativeEither[EE, B])(f: (A, B) => C): AccumulativeEither[EE, C] = {
+      for {
+        aa <- this
+        bb <- b
+      } yield f(aa, bb)
+    }
+  }
+  case class AccLeft[E](errors: Seq[E]) extends AccumulativeEither[E, Nothing]
+  case class AccRight[A](value: A) extends AccumulativeEither[Nothing, A]
+
 }
