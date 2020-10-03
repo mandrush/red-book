@@ -1,7 +1,5 @@
 package chapter4
 
-import com.sun.corba.se.spi.activation.EndPointInfoHelper
-
 import scala.{Either => _, Option => _}
 
 sealed trait Option[+A] {
@@ -68,7 +66,6 @@ sealed trait Either[+E, +A] {
     } yield f(aa, bb)
   }
 
-
 }
 case class Left[+E](value: E) extends Either[E, Nothing]
 case class Right[+A](value: A) extends Either[Nothing, A]
@@ -80,7 +77,7 @@ object Chapter4 extends App {
     case _: Exception => None
   }
 
-  def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
+  def map2Option[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = {
     for {
       oa <- a
       ob <- b
@@ -88,14 +85,23 @@ object Chapter4 extends App {
   }
 
   def sequence[A](xs: List[Option[A]]): Option[List[A]] =
-    xs.foldRight(None: Option[List[A]])((curr, z) => map2(curr, z)((opt, list) => opt :: list))
+    xs.foldRight(None: Option[List[A]])((curr, z) => map2Option(curr, z)((opt, list) => opt :: list))
 
   def traverse[A, B](xs: List[A])(f: A => Option[B]): Option[List[B]] = xs match {
     case Nil    => None
-    case h :: t => map2(f(h), traverse(t)(f))(_ :: _)
+    case h :: t => map2Option(f(h), traverse(t)(f))(_ :: _)
   }
 
   def sequenceUsingTraverse[A](xs: List[Option[A]]): Option[List[A]] =
     traverse(xs)(a => a)
+
+  def traverseEither[E, A, B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] = es match {
+    case Nil => Right(Nil)
+    case h :: t => f(h).map2(traverseEither(t)(f))(_ :: _)
+  }
+
+  def sequenceEither[E, A](es: List[Either[E, A]]): Either[E, List[A]] = {
+    traverseEither(es)(_ => _)
+  }
 
 }
